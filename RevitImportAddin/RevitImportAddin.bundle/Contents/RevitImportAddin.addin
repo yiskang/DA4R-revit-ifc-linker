@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<RevitAddIns>
+	<AddIn Type="DBApplication">
+		<Name>RevitIfcImportAddin</Name>
+		<FullClassName>RevitImportAddin.Command</FullClassName>
+		<Text>RevitIfcImportAddin</Text>
+		<Description>Link IFC to Revit RVT</Description>
+		<VisibilityMode>AlwaysVisible</VisibilityMode>
+		<Assembly>.\RevitImportAddin.dll</Assembly>
+		<AddInId>4FEC3BFA-1120-4CF2-8183-631DD31D1E84</AddInId>
+		<VendorId>ADSK</VendorId>
+		<VendorDescription>Autodesk, Inc, www.autodesk.com</VendorDescription>
+	</AddIn>
+</RevitAddIns>
