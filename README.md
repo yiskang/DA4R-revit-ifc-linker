@@ -11,7 +11,7 @@
 
 # Description
 
-This sample demonstrates how to link IFC files into host RVT file using `Importer` from `Revit.IFC.Import.dll` shipped with Revit software on Design Automation.
+This sample demonstrates how to link IFC files into host RVT file on Design Automation using `Importer` from `Revit.IFC.Import.dll` shipped with Revit software.
 
 # Development Setup
 
