@@ -56,7 +56,7 @@ namespace RevitImportAddin
         {
             var app = sender as Autodesk.Revit.ApplicationServices.Application;
             DesignAutomationData data = new DesignAutomationData(app, "InputFile.rvt");
-            this.DoExport(data);
+            this.DoTask(data);
         }
 
         private void HandleDesignAutomationReadyEvent(object sender, DesignAutomationReadyEventArgs e)
@@ -66,10 +66,10 @@ namespace RevitImportAddin
             Application.RegisterFailuresProcessor(new ExportIfcFailuresProcessor());
 
             e.Succeeded = true;
-            e.Succeeded = this.DoExport(e.DesignAutomationData);
+            e.Succeeded = this.DoTask(e.DesignAutomationData);
         }
 
-        private bool DoExport(DesignAutomationData data)
+        private bool DoTask(DesignAutomationData data)
         {
             if (data == null)
                 return false;
@@ -77,12 +77,12 @@ namespace RevitImportAddin
             Application app = data.RevitApp;
             if (app == null)
             {
-                LogTrace("Error occured");
+                LogTrace("Error occurred");
                 LogTrace("Invalid Revit App");
                 return false;
             }
 
-            LogTrace("Creating ouput folder...");
+            LogTrace("Creating output folder...");
 
             var outputPath = Path.Combine(Directory.GetCurrentDirectory(), "output");
             if (!Directory.Exists(outputPath))
@@ -119,7 +119,7 @@ namespace RevitImportAddin
             var hostDoc = app.OpenDocumentFile(hostModelPath, new OpenOptions());
             if (hostDoc == null)
             {
-                LogTrace("Error occured");
+                LogTrace("Error occurred");
                 LogTrace("Invalid Revit DB Document");
                 return false;
             }
@@ -135,7 +135,7 @@ namespace RevitImportAddin
 
             foreach (var ifcName in ifcFilenames)
             {
-                LogTrace($"Linkuing `{ifcName}` ...");
+                LogTrace($"Linking `{ifcName}` ...");
                 try
                 {
                     string fullIFCFileName = Path.Combine(outputPath, ifcName);
@@ -174,7 +174,7 @@ namespace RevitImportAddin
 
         private void PrintError(Exception ex)
         {
-            LogTrace("Error occured");
+            LogTrace("Error occurred");
             LogTrace(ex.Message);
 
             if (ex.InnerException != null)
