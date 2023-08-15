@@ -27,6 +27,7 @@ using DesignAutomationFramework;
 using Newtonsoft.Json;
 using Revit.IFC.Import;
 using Revit.IFC.Import.Data;
+using Revit.IFC.Import.Utility;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -61,7 +62,7 @@ namespace RevitImportAddin
 
         private void HandleDesignAutomationReadyEvent(object sender, DesignAutomationReadyEventArgs e)
         {
-            LogTrace("Design Automation Ready event triggered...");
+            LogTrace("Design Automation Ready event triggered ...");
             // Hook up the CustomFailureHandling failure processor.
             Application.RegisterFailuresProcessor(new ExportIfcFailuresProcessor());
 
@@ -82,7 +83,7 @@ namespace RevitImportAddin
                 return false;
             }
 
-            LogTrace("Creating output folder...");
+            LogTrace("Creating output folder ...");
 
             var outputPath = Path.Combine(Directory.GetCurrentDirectory(), "output");
             if (!Directory.Exists(outputPath))
@@ -104,13 +105,26 @@ namespace RevitImportAddin
 
             if (folder.Exists)
             {
-                LogTrace("Moving files into `output` folder");
+                LogTrace("Moving files into `output` folder ...");
 
                 var ifcFiles = folder.GetFiles("*.ifc");
-                ifcFiles.ToList().ForEach(f => File.Move(f.FullName, Path.Combine(outputPath, f.Name)));
+                if (ifcFiles.Length <= 0)
+                {
+                    LogTrace(" - No IFC found in working directory. Locating folders ...");
+                    var subFolders = folder.GetDirectories().Where(fd => !fd.Name.Contains("output")).ToList();
 
-                var IfcLinkFiles = folder.GetFiles("*.rvt");
-                IfcLinkFiles.ToList().ForEach(f => File.Move(f.FullName, Path.Combine(outputPath, f.Name)));
+                    LogTrace(" - Moving folders that might contain IFC files into `output` folder ...");
+                    subFolders.ForEach(fd => Directory.Move(fd.FullName, Path.Combine(outputPath, fd.Name)));
+                }
+                else
+                {
+                    LogTrace(" - Moving IFC files into `output` folder ...");
+                    ifcFiles.ToList().ForEach(f => File.Move(f.FullName, Path.Combine(outputPath, f.Name)));
+                }
+
+                LogTrace(" - Moving RVT files into `output` folder ...");
+                var rvtFiles = folder.GetFiles("*.rvt");
+                rvtFiles.ToList().ForEach(f => File.Move(f.FullName, Path.Combine(outputPath, f.Name)));
             }
 
             LogTrace("Opening the `host.rvt` ...");
@@ -124,21 +138,33 @@ namespace RevitImportAddin
                 return false;
             }
 
-            LogTrace("Linking IFC...");
+            LogTrace("Linking IFC ...");
 
             var outputFolder = new DirectoryInfo(outputPath);
-            var ifcFilenames = outputFolder.GetFiles("*.ifc").Select(f => f.Name);
+            FileInfo[] ifcLinkFiles = outputFolder.GetFiles("*.ifc", SearchOption.AllDirectories);
+
+            if (ifcLinkFiles.Length <=0)
+            {
+                LogTrace("Error occurred");
+                LogTrace("No IFC found to be linked");
+                return false;
+            }
 
             IDictionary<string, string> options = new Dictionary<string, string>();
             options["Action"] = "Link";   // default is Open.
             options["Intent"] = "Reference"; // This is the default.
 
-            foreach (var ifcName in ifcFilenames)
+            foreach (FileInfo ifcFile in ifcLinkFiles)
             {
+                var ifcName = ifcFile.FullName.Replace(outputPath, string.Empty);
                 LogTrace($"Linking `{ifcName}` ...");
+
                 try
                 {
-                    string fullIFCFileName = Path.Combine(outputPath, ifcName);
+                    // Clear the maps at the start of import, to force reload of options.
+                    IFCCategoryUtil.Clear();
+
+                    string fullIFCFileName = ifcFile.FullName; //Path.Combine(outputPath, ifcName);
                     Importer importer = Importer.CreateImporter(hostDoc, fullIFCFileName, options);
 
                     importer.ReferenceIFC(hostDoc, fullIFCFileName, options);
@@ -155,11 +181,12 @@ namespace RevitImportAddin
                 {
                     if (Importer.TheLog != null)
                         Importer.TheLog.Close();
+
                     if (IFCImportFile.TheFile != null)
                         IFCImportFile.TheFile.Close();
                 }
 
-                LogTrace($"The `{ifcName}` linked...");
+                LogTrace($"The `{ifcName}` linked ...");
             }
 
             LogTrace("Saving changes into `host.rvt` ...");
@@ -167,7 +194,7 @@ namespace RevitImportAddin
             ModelPath path = ModelPathUtils.ConvertUserVisiblePathToModelPath(Path.Combine(outputPath, "output.rvt"));
             hostDoc.SaveAs(path, new SaveAsOptions());
 
-            LogTrace("IFC link completed...");
+            LogTrace("IFC link completed ...");
 
             return true;
         }
