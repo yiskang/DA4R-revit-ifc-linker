@@ -99,7 +99,7 @@ namespace RevitImportAddin
                 }
             }
 
-            LogTrace(string.Format("Output Path: `{0}`", outputPath));
+            LogTrace(string.Format("Output Path: `{0}` ...", outputPath));
 
             var folder = new DirectoryInfo(Directory.GetCurrentDirectory());
 
@@ -107,28 +107,18 @@ namespace RevitImportAddin
             {
                 LogTrace("Moving files into `output` folder ...");
 
-                var ifcFiles = folder.GetFiles("*.ifc");
-                if (ifcFiles.Length <= 0)
-                {
-                    LogTrace(" - No IFC found in working directory. Locating folders ...");
-                    var subFolders = folder.GetDirectories().Where(fd => !fd.Name.Contains("output")).ToList();
-
-                    LogTrace(" - Moving folders that might contain IFC files into `output` folder ...");
-                    subFolders.ForEach(fd => Directory.Move(fd.FullName, Path.Combine(outputPath, fd.Name)));
-                }
-                else
-                {
-                    LogTrace(" - Moving IFC files into `output` folder ...");
-                    ifcFiles.ToList().ForEach(f => File.Move(f.FullName, Path.Combine(outputPath, f.Name)));
-                }
+                var ifcFiles = folder.GetFiles("*.ifc", SearchOption.AllDirectories);
+                LogTrace(" - Moving IFC files into `output` folder with flatten folder structure ...");
+                ifcFiles.ToList().ForEach(f => File.Move(f.FullName, Path.Combine(outputPath, f.Name)));
+                LogTrace(" -- DONE.");
 
                 LogTrace(" - Moving RVT files into `output` folder ...");
                 var rvtFiles = folder.GetFiles("*.rvt");
                 rvtFiles.ToList().ForEach(f => File.Move(f.FullName, Path.Combine(outputPath, f.Name)));
+                LogTrace(" -- DONE.");
             }
 
             LogTrace("Opening the `host.rvt` ...");
-
             var hostModelPath = ModelPathUtils.ConvertUserVisiblePathToModelPath(Path.Combine(outputPath, "host.rvt"));
             var hostDoc = app.OpenDocumentFile(hostModelPath, new OpenOptions());
             if (hostDoc == null)
@@ -137,6 +127,7 @@ namespace RevitImportAddin
                 LogTrace("Invalid Revit DB Document");
                 return false;
             }
+            LogTrace(" - DONE.");
 
             LogTrace("Linking IFC ...");
 
@@ -156,8 +147,8 @@ namespace RevitImportAddin
 
             foreach (FileInfo ifcFile in ifcLinkFiles)
             {
-                var ifcName = ifcFile.FullName.Replace(outputPath, string.Empty);
-                LogTrace($"Linking `{ifcName}` ...");
+                var ifcName = ifcFile.FullName.Replace(outputPath, string.Empty).Trim(Path.DirectorySeparatorChar);
+                LogTrace($" - Linking `{ifcName}` ...");
 
                 try
                 {
@@ -186,15 +177,23 @@ namespace RevitImportAddin
                         IFCImportFile.TheFile.Close();
                 }
 
-                LogTrace($"The `{ifcName}` linked ...");
+                LogTrace(" -- DONE.");
             }
 
-            LogTrace("Saving changes into `host.rvt` ...");
-
-            ModelPath path = ModelPathUtils.ConvertUserVisiblePathToModelPath(Path.Combine(outputPath, "output.rvt"));
-            hostDoc.SaveAs(path, new SaveAsOptions());
-
             LogTrace("IFC link completed ...");
+
+            try
+            {
+                LogTrace("Saving changes into `host.rvt` ...");
+                ModelPath path = ModelPathUtils.ConvertUserVisiblePathToModelPath(Path.Combine(outputPath, "output.rvt"));
+                hostDoc.SaveAs(path, new SaveAsOptions());
+                LogTrace(" - DONE.");
+            }
+            catch (Exception ex)
+            {
+                LogTrace("Exception in saving host document. " + ex.Message);
+                return false;
+            }
 
             return true;
         }
