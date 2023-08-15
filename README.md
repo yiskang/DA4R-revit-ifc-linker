@@ -4,14 +4,14 @@
 
 ![Revit](https://img.shields.io/badge/Plugins-Revit-lightgrey.svg)
 ![.NET](https://img.shields.io/badge/.NET%20Framework-4.8-blue.svg)
-[![Revit](https://img.shields.io/badge/Revit-2022|2023|2024-lightgrey.svg)](https://www.autodesk.com/products/revit/overview/)
+[![Revit](https://img.shields.io/badge/Revit-2022-lightgrey.svg)](https://www.autodesk.com/products/revit/overview/)
 
 ![Advanced](https://img.shields.io/badge/Level-Advanced-red.svg)
 [![MIT](https://img.shields.io/badge/License-MIT-blue.svg)](http://opensource.org/licenses/MIT)
 
 # Description
 
-This sample demonstrates how to link IFC files into host RVT file on Design Automation using `Importer` from `Revit.IFC.Import.dll` shipped with Revit software.
+This sample demonstrates how to link IFC files into host RVT file on Design Automation using `Importer` of `Revit.IFC.Import.dll` from Revit software.
 
 # Development Setup
 
