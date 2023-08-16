@@ -11,7 +11,12 @@
 
 # Description
 
-This sample demonstrates how to link IFC files into host RVT file on Design Automation using `Importer` of `Revit.IFC.Import.dll` from Revit software.
+This sample demonstrates how to link IFC files into host RVT file on Design Automation using the `Importer` of `Revit.IFC.Import.dll` from Revit software. In this sample, we use the one from Revit 2022 software by reference (**not-copy-locally**).
+
+### Notice
+
+Commonly, `Revit.IFC.Import.dll` can be found in Revit installation location, but in case any changes and updates in this DLL, you can also find its source code under the path [Source
+/Revit.IFC.Import](https://github.com/Autodesk/revit-ifc/tree/master/Source/Revit.IFC.Import) of [Autodesk revit-ifc open source addin](https://github.com/Autodesk/revit-ifc).
 
 # Development Setup
 
